@@ -99,8 +99,8 @@ Non-trainable params: 896
 """
 
 
-tf.config.experimental.set_memory_growth = True						# This prevents a memory access error if the GPU is
-																	# being used by other processes
+tf.config.experimental.set_memory_growth = True				# This prevents a memory access error if the GPU is
+															# being used by other processes
 tf.compat.v1.GPUOptions.per_process_gpu_memory_fraction = 0.9
 
 # Load the dataset
@@ -117,7 +117,7 @@ def load_data(path, size):
 # Choose n real samples from the data
 def choose_real_samples(data, n):
 	indices = randint(0, data.shape[0], n)		# Choose n random indices
-	X = data[indices]							# Select the corresponding samples
+	X = data[indices]
 	Y = np.ones((n, 1))							# Generate "real" class labels
 	return X, Y
 
@@ -130,8 +130,8 @@ def generate_random_vectors(dim , n):
 
 # Use the generator to create n samples from random vectors
 def create_fake_samples(generator, dim, n):
-	input = generate_random_vectors(dim, n)		# Generate the random input to be fed into the generator
-	X = generator.predict(input)				# Use the generator
+	input = generate_random_vectors(dim, n)
+	X = generator.predict(input)
 	Y = np.zeros((n, 1))						# Generate "fake" class labels
 	return X, Y
 
