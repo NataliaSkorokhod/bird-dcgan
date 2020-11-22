@@ -99,8 +99,7 @@ Non-trainable params: 896
 """
 
 
-tf.config.experimental.set_memory_growth = True				# This prevents a memory access error if the GPU is
-															# being used by other processes
+tf.config.experimental.set_memory_growth = True  # This prevents a memory access error if the GPU is being used by other processes
 tf.compat.v1.GPUOptions.per_process_gpu_memory_fraction = 0.9
 
 # Load the dataset
@@ -110,21 +109,21 @@ def load_data(path, size):
 		if os.path.isfile(filename):
 			pixels = load_img(filename, target_size=size)
 			pixels = img_to_array(pixels)
-			pixels = pixels*(2./255) - 1		# Normalizing to [-1, 1]
+			pixels = pixels*(2./255) - 1  # Normalizing to [-1, 1]
 			data_list.append(pixels)
 	return np.asarray(data_list)
 
 # Choose n real samples from the data
 def choose_real_samples(data, n):
-	indices = randint(0, data.shape[0], n)		# Choose n random indices
+	indices = randint(0, data.shape[0], n)  # Choose n random indices
 	X = data[indices]
-	Y = np.ones((n, 1))							# Generate "real" class labels
+	Y = np.ones((n, 1))  # Generate "real" class labels
 	return X, Y
 
 # Generate random vectors to be fed into the generator
 # n - number of samples, dim - dimension of the vector space
 def generate_random_vectors(dim , n):
-	input = randn(dim * n)						# Using a normal distribution as recommended
+	input = randn(dim * n)  # Using a normal distribution as recommended
 	input = input.reshape(n, dim)
 	return input
 
@@ -132,7 +131,7 @@ def generate_random_vectors(dim , n):
 def create_fake_samples(generator, dim, n):
 	input = generate_random_vectors(dim, n)
 	X = generator.predict(input)
-	Y = np.zeros((n, 1))						# Generate "fake" class labels
+	Y = np.zeros((n, 1))  # Generate "fake" class labels
 	return X, Y
 
 def create_discriminator():
@@ -164,7 +163,7 @@ def create_generator(dim):
 	model.add(UpSampling2D())
 	model.add(Conv2D(64, kernel_size=3, padding="same"))
 	model.add(BatchNormalization(momentum=0.8))
-	model.add(LeakyReLU(alpha=0.2))					# The generator can also use ReLU, as vanishing gradients are less common here
+	model.add(LeakyReLU(alpha=0.2))  # The generator can also use ReLU, as vanishing gradients are less common here
 	model.add(UpSampling2D())
 	model.add(Conv2D(32, kernel_size=3, padding="same"))
 	model.add(BatchNormalization(momentum=0.8))
@@ -179,7 +178,7 @@ def create_generator(dim):
 
 # Combine the generator and discriminator into a single model (intended for generator update)
 def GAN(generator, discriminator):
-	discriminator.trainable = False					# Setting the discriminator to not update weights
+	discriminator.trainable = False	 # Setting the discriminator to not update weights
 	model = Sequential()
 	model.add(generator)
 	model.add(discriminator)
@@ -269,17 +268,16 @@ def train(generator, discriminator, GAN, data, dim, epochs, batch_size):
 
 if __name__ == '__main__':
 
-	dim = 150									# The dimension of the vector space from which we take random vectors
+	dim = 150  # The dimension of the vector space from which we take random vectors
 
-	load_new_data = False						# Change to True if loading new data is required
+	load_new_data = False  # Change to True if loading new data is required
 
-	new_data_path = None						# Give as '[path]\**' for loading files from all subfolders. For example:
-												# 'C:\\Users\\Natalia\PycharmProjects\GAN\\consolidated\\Small Birds\\**'
+	new_data_path = None  # Give as '[path]\**' for loading files from all subfolders. For example: 'C:\\Users\\Natalia\PycharmProjects\GAN\\consolidated\\Small Birds\\**'
 
-	new_data_name = None						# Under which name to save the data, e.g 'birds_data_64.npy'
+	new_data_name = None  # Under which name to save the data, e.g 'birds_data_64.npy'
 
-	data_file = 'birds_data_64.npy'				# Existing numpy file from which the data is loaded (alternative to the above)
-	image_size = (64, 64)						# Images will be scaled to the given size
+	data_file = 'birds_data_64.npy'  # Existing numpy file from which the data is loaded (alternative to the above)
+	image_size = (64, 64)  # Images will be scaled to the given size
 
 	discriminator = create_discriminator()
 	generator = create_generator(dim)
