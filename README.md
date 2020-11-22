@@ -7,10 +7,13 @@ This is an implementation of a DCGAN which generates images of birds.
 Here are examples of some randomly chosen generated images (64x64 pixels) at epoch 20, 200, and 400:
 
 **Epoch 20:**
+
 ![example](generated_images_epoch_20.png)
 
 **Epoch 200:**
+
 ![example](generated_images_epoch_200.png)
 
-**Eposh 400:**
+**Epoch 400:**
+
 ![example](generated_images_epoch_400.png)
