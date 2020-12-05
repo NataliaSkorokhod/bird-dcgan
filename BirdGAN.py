@@ -124,7 +124,7 @@ def choose_real_samples(data, n):
 # Generate random vectors to be fed into the generator
 # n - number of samples, dim - dimension of the vector space
 def generate_random_vectors(dim, n):
-    input = randn(dim * n)  # Using a normal distribution as recommended
+    input = randn(dim * n)  # Using a normal distribution as recommended in the literature
     input = input.reshape(n, dim)
     return input
 
@@ -135,6 +135,15 @@ def create_fake_samples(generator, dim, n):
     X = generator.predict(input)
     Y = np.zeros((n, 1))  # Generate "fake" class labels
     return X, Y
+
+
+# Add noise to samples in order to improve convergence
+# X - data, scaling - scaling of noise.
+# Note that our data is scaled to [-1, 1]
+def noise(X, scaling):
+    noise = scaling * np.random.normal(-1, 1, X.shape)
+    X = X + noise
+    return X
 
 
 def create_discriminator():
@@ -156,7 +165,6 @@ def create_discriminator():
     model.add(Dense(1, activation='sigmoid'))
     optimizer = Adam(lr=0.0004, beta_1=0.5)
     model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
-    model.summary()
     return model
 
 
@@ -177,7 +185,6 @@ def create_generator(dim):
     model.add(LeakyReLU(alpha=0.2))
     model.add(Conv2D(3, kernel_size=3, padding="same"))
     model.add(Activation("tanh"))
-    model.summary()
     return model
 
 
@@ -189,16 +196,15 @@ def GAN(generator, discriminator):
     model.add(discriminator)
     optimizer = Adam(lr=0.0001, beta_1=0.5)
     model.compile(loss='binary_crossentropy', optimizer=optimizer)
-    model.summary()
     return model
 
 
 def evaluate_GAN(epoch, generator, discriminator, data, dim, samples=100):
     X_real, Y_real = choose_real_samples(data, samples)
-    X_fake, Y_fake = create_fake_samples(generator, samples, dim)
+    X_fake, Y_fake = create_fake_samples(generator, dim, samples)
     _, accuracy_real = discriminator.evaluate(X_real, Y_real, verbose=0)
     _, accuracy_fake = discriminator.evaluate(X_fake, Y_fake, verbose=0)
-    print('accuracy real: %d, accuracy fake: %d' % (accuracy_real, accuracy_fake))
+    print('accuracy real: %.3f, accuracy fake: %.3f' % (accuracy_real, accuracy_fake))
 
     # Create an n*n grid of generated images and saving it
     n = 3
@@ -236,7 +242,7 @@ def plot(epoch, disc_real, disc_fake, gen, acc_real, acc_fake):
 
 
 # Train the generator and discriminator
-def train(generator, discriminator, GAN, data, dim, epochs, batch_size):
+def train(generator, discriminator, GAN, data, dim, epochs, batch_size, add_noise=True, verbose=True):
     batches_per_epoch = int(data.shape[0] / batch_size)
     half_batch = int(batch_size / 2)
 
@@ -247,10 +253,17 @@ def train(generator, discriminator, GAN, data, dim, epochs, batch_size):
 
     for i in range(epochs):
         for j in range(batches_per_epoch):
+
             X_real, Y_real = choose_real_samples(data, half_batch)
+            if add_noise:
+                X_real = noise(X_real, 0.05)
             discriminator_loss_real, discriminator_accuracy_real = discriminator.train_on_batch(X_real, Y_real)
+
             X_fake, Y_fake = create_fake_samples(generator, dim, half_batch)
+            if add_noise:
+                X_fake = noise(X_fake, 0.05)
             discriminator_loss_fake, discriminator_accuracy_fake = discriminator.train_on_batch(X_fake, Y_fake)
+
             X_GAN = generate_random_vectors(dim, batch_size)
             Y_GAN = np.ones((batch_size, 1))
             generator_loss = GAN.train_on_batch(X_GAN, Y_GAN)
@@ -261,12 +274,14 @@ def train(generator, discriminator, GAN, data, dim, epochs, batch_size):
             acc_real.append(discriminator_accuracy_real)
             acc_fake.append(discriminator_accuracy_fake)
 
-            print('>%d, %d/%d, disc_loss_real=%.3f, disc_loss_fake=%.3f gen_loss=%.3f, disc_accuracy_real=%.3f, '
-                  'disc_accuracy_fake=%.3f' %
-                  (i + 1, j + 1, batches_per_epoch, discriminator_loss_real, discriminator_loss_fake, generator_loss,
-                   discriminator_accuracy_real, discriminator_accuracy_fake))
+            if verbose:
+                print('>%d, %d/%d, disc_loss_real=%.3f, disc_loss_fake=%.3f gen_loss=%.3f, disc_accuracy_real=%.3f, '
+                      'disc_accuracy_fake=%.3f' %
+                      (
+                      i + 1, j + 1, batches_per_epoch, discriminator_loss_real, discriminator_loss_fake, generator_loss,
+                      discriminator_accuracy_real, discriminator_accuracy_fake))
 
-        if (i + 1) % 20 == 0:
+        if (i + 1) % 10 == 0:
             evaluate_GAN(i, generator, discriminator, data, dim, samples=100)
             plot(i, disc_real, disc_fake, gen, acc_real, acc_fake)
             disc_real, disc_fake, gen, acc_real, acc_fake = list(), list(), list(), list(), list()
@@ -274,7 +289,7 @@ def train(generator, discriminator, GAN, data, dim, epochs, batch_size):
 
 if __name__ == '__main__':
 
-    dim = 150  # The dimension of the vector space from which we take random vectors
+    dim = 50  # The dimension of the vector space from which we take random vectors
 
     load_new_data = False  # Change to True if loading new data is required
 
@@ -299,7 +314,8 @@ if __name__ == '__main__':
         data = np.load(data_file)
 
     time0 = time.time()
-    train(generator, discriminator, GAN, data, dim=dim, epochs=400,
-          batch_size=128)  # Batch size should be even (preferably a power of 2, for efficiency)
+    train(generator, discriminator, GAN, data, dim=dim, epochs=600,
+          batch_size=256, add_noise=True,
+          verbose=True)  # Batch size should be even (preferably a power of 2, for efficiency)
     time1 = time.time()
-    print('The training took %.3f minutes') % (time1 - time0) / 60
+    print('The training took %.3f minutes' % ((time1 - time0) / 60))
