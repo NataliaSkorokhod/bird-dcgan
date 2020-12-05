@@ -3,8 +3,7 @@ import glob
 import tensorflow as tf
 from matplotlib import pyplot
 import numpy as np
-from numpy.random import randn
-from numpy.random import randint
+from numpy.random import randn, randint, normal
 import time
 from keras.optimizers import Adam
 from keras.models import Sequential
@@ -141,7 +140,7 @@ def create_fake_samples(generator, dim, n):
 # X - data, scaling - scaling of noise.
 # Note that our data is scaled to [-1, 1]
 def noise(X, scaling):
-    noise = scaling * np.random.normal(-1, 1, X.shape)
+    noise = normal(0, scaling, X.shape)
     X = X + noise
     return X
 
