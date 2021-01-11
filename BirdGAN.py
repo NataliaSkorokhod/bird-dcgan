@@ -288,13 +288,13 @@ def train(generator, discriminator, GAN, data, dim, epochs, batch_size, add_nois
 
 if __name__ == '__main__':
 
-    dim = 50  # The dimension of the vector space from which we take random vectors
+    dim = 100  # The dimension of the vector space from which we take random vectors
 
-    load_new_data = False  # Change to True if loading new data is required
+    load_new_data = True  # Change to True if loading new data is required
 
-    new_data_path = None  # Give as '[path]\**' for loading files from all subfolders. For example: 'C:\\Users\\Natalia\PycharmProjects\GAN\\consolidated\\Small Birds\\**'
+    new_data_path = 'C:\\Users\\Natalia\PycharmProjects\GAN\\consolidated\\1 Small Birds\\**'  # Give as '[path]\**' for loading files from all subfolders.
 
-    new_data_name = None  # Under which name to save the data, e.g 'birds_data_64.npy'
+    new_data_name = 'birds_data_64.npy'  # Under which name to save the data, e.g 'birds_data_64.npy'
 
     data_file = 'birds_data_64.npy'  # Existing numpy file from which the data is loaded (alternative to the above)
     image_size = (64, 64)  # Images will be scaled to the given size
